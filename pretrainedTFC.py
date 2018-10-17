@@ -1,9 +1,10 @@
 import numpy as np
 
 from tensorforce.agents import PPOAgent
-from tensorforce.agents import RandomAgent
 from tensorforce.execution import Runner
 from tensorforce.contrib.openai_gym import OpenAIGym
+
+""" Simple example copied from Tensorforce's documentation website """
 
 # Create an OpenAIgym environment
 env = OpenAIGym('CartPole-v1', visualize=True)
@@ -11,6 +12,7 @@ env = OpenAIGym('CartPole-v1', visualize=True)
 # Network as list of layers
 network_spec = [
     dict(type='dense', size=32, activation='tanh'),
+    dict(type='dense', size=64, activation='tanh'),
     dict(type='dense', size=32, activation='tanh')
 ]
 
@@ -18,9 +20,6 @@ agent = PPOAgent(
     states=env.states,
     actions=env.actions,
     network=network_spec,
-    #batch_size=4096,
-    # BatchAgent
-    #keep_last_timestep=True,
     # PPOAgent
     step_optimizer=dict(
         type='adam',
@@ -31,7 +30,6 @@ agent = PPOAgent(
     scope='ppo',
     discount=0.99,
     # DistributionModel
-    #distributions_spec=None,
     entropy_regularization=0.01,
     # PGModel
     baseline_mode=None,
@@ -40,8 +38,6 @@ agent = PPOAgent(
     gae_lambda=None,
     # PGLRModel
     likelihood_ratio_clipping=0.2
-    #summary_spec=None,
-    #distributed_spec=None
 )
 
 # Create the runner
@@ -56,7 +52,7 @@ def episode_finished(r):
 
 
 # Start learning
-runner.run(episodes=300, max_episode_timesteps=200, episode_finished=episode_finished)
+runner.run(episodes=300, max_episode_timesteps=10000, episode_finished=episode_finished)
 runner.close()
 
 # Print statistics
