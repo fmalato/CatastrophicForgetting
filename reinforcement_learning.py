@@ -952,7 +952,7 @@ class EpsilonGreedy:
     """
 
     def __init__(self, num_actions,
-                 epsilon_testing=0.05,
+                 epsilon_testing=0.01,
                  num_iterations=1e6,
                  start_value=1.0, end_value=0.1,
                  repeat=False):
@@ -1554,7 +1554,7 @@ class Agent:
             # Each pixel is 1 byte, so this replay-memory needs more than
             # 3 GB RAM (105 x 80 x 2 x 200000 bytes).
 
-            self.replay_memory = ReplayMemory(size=20000,
+            self.replay_memory = ReplayMemory(size=100000,
                                               num_actions=self.num_actions)
         else:
             self.replay_memory = None
@@ -1757,7 +1757,7 @@ class Agent:
 
 if __name__ == '__main__':
     # Description of this program.
-    desc = "Reinformenct Learning (Q-learning) for Atari Games using TensorFlow."
+    desc = "Reinforcement Learning (Q-learning) for Atari Games using TensorFlow."
 
     # Create the argument parser.
     parser = argparse.ArgumentParser(description=desc)
