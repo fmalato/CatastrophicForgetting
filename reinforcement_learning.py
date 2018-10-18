@@ -1136,19 +1136,19 @@ class NeuralNetwork:
 
         # First convolutional layer.
         net = tf.layers.conv2d(inputs=net, name='layer_conv1',
-                               filters=16, kernel_size=3, strides=2,
+                               filters=32, kernel_size=8, strides=4,
                                padding=padding,
                                kernel_initializer=init, activation=activation)
 
         # Second convolutional layer.
         net = tf.layers.conv2d(inputs=net, name='layer_conv2',
-                               filters=32, kernel_size=3, strides=2,
+                               filters=64, kernel_size=4, strides=2,
                                padding=padding,
                                kernel_initializer=init, activation=activation)
 
         # Third convolutional layer.
         net = tf.layers.conv2d(inputs=net, name='layer_conv3',
-                               filters=64, kernel_size=3, strides=1,
+                               filters=128, kernel_size=3, strides=1,
                                padding=padding,
                                kernel_initializer=init, activation=activation)
 
@@ -1163,16 +1163,16 @@ class NeuralNetwork:
                               kernel_initializer=init, activation=activation)
 
         # Second fully-connected layer.
-        net = tf.layers.dense(inputs=net, name='layer_fc2', units=1024,
-                              kernel_initializer=init, activation=activation)
+        #net = tf.layers.dense(inputs=net, name='layer_fc2', units=1024,
+        #                      kernel_initializer=init, activation=activation)
 
         # Third fully-connected layer.
-        net = tf.layers.dense(inputs=net, name='layer_fc3', units=1024,
-                              kernel_initializer=init, activation=activation)
+        #net = tf.layers.dense(inputs=net, name='layer_fc3', units=1024,
+        #                      kernel_initializer=init, activation=activation)
 
         # Fourth fully-connected layer.
-        net = tf.layers.dense(inputs=net, name='layer_fc4', units=1024,
-                              kernel_initializer=init, activation=activation)
+        #net = tf.layers.dense(inputs=net, name='layer_fc4', units=1024,
+        #                      kernel_initializer=init, activation=activation)
 
         # Final fully-connected layer.
         net = tf.layers.dense(inputs=net, name='layer_fc_out', units=num_actions,

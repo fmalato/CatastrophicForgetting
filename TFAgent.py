@@ -20,7 +20,7 @@ agent = rl.Agent(env_name=env_name,
 model = agent.model
 replay_memory = agent.replay_memory
 
-agent.run(num_episodes=100)
+agent.run(num_episodes=200)
 
 log_q_values = rl.LogQValues()
 log_reward = rl.LogReward()
