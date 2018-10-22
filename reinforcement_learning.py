@@ -366,12 +366,13 @@ class LogQValues(Log):
 
 class LogLoss(Log):
     
-    def __init__(self):
+    def __init__(self, env_name):
         self.numEpisode = None
         self.epLoss = None
         self.epMeanLoss = None
+        self.env_name = env_name
         
-        Log.__init__(self, file_path='./log_loss/log_loss.txt')
+        Log.__init__(self, file_path='./checkpoints/{name}/log_loss.txt'.format(name=self.env_name))
 
         # I agree: that's horrible. I've put it there because of Log.__init__, which converted it to a NoneType
         # causing an error.
@@ -1074,7 +1075,7 @@ class NeuralNetwork:
     better at estimating the Q-values.
     """
 
-    def __init__(self, num_actions, replay_memory, is_training=False):
+    def __init__(self, num_actions, replay_memory, env_name, is_training=False):
         """
         :param num_actions:
             Number of discrete actions for the game-environment.
@@ -1123,12 +1124,14 @@ class NeuralNetwork:
         self.count_episodes_increase = tf.assign(self.count_episodes,
                                                  self.count_episodes + 1)
 
-        self.loss_log = LogLoss()
-
         # Need those values for the log_loss file
         self.loss_val = None
         self.loss_mean = None
         self.training = is_training
+        self.env_name = env_name
+
+        # Finally we can use the LogLoss
+        self.loss_log = LogLoss(self.env_name)
 
         # The Neural Network will be constructed in the following.
         # Note that the architecture of this Neural Network is very
@@ -1197,7 +1200,7 @@ class NeuralNetwork:
         # TODO: net = tf.layers.flatten(net)
         net = tf.contrib.layers.flatten(net)
 
-        # COmmented layers due to the article restrictions
+        # Commented layers due to the article restrictions
         # First fully-connected (aka. dense) layer.
         net = tf.layers.dense(inputs=net, name='layer_fc1', units=1024,
                               kernel_initializer=init, activation=activation)
@@ -1528,12 +1531,14 @@ class Agent:
 
         # Whether to use logging during training.
         self.use_logging = use_logging
+        # In that case, I need an env_name for the logging
+        self.env_name = env_name
 
         if self.use_logging and self.training:
             # Used for logging Q-values and rewards during training.
             self.log_q_values = LogQValues()
             self.log_reward = LogReward()
-            self.log_loss = LogLoss()
+            self.log_loss = LogLoss(self.env_name)
         else:
             self.log_q_values = None
             self.log_reward = None
@@ -1609,7 +1614,8 @@ class Agent:
         # Create the Neural Network used for estimating Q-values.
         self.model = NeuralNetwork(num_actions=self.num_actions,
                                    replay_memory=self.replay_memory,
-                                   is_training=self.training)
+                                   is_training=self.training,
+                                   env_name=env_name)
 
         # Log of the rewards obtained in each episode during calls to run()
         self.episode_rewards = []

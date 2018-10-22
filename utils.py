@@ -179,3 +179,10 @@ def plot_conv_weights(model, layer_name, input_channel=0):
     # Ensure the plot is shown correctly with multiple plots
     # in a single Notebook cell.
     plt.show()
+
+#################################################
+#
+# As long as the EWC requires a diagonal FIM, we need to diagonalize it. The following code is based on
+# https://arxiv.org/abs/1802.02950 , in order to optimize the neural network work load.
+#
+#################################################

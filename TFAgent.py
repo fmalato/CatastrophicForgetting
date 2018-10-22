@@ -31,7 +31,7 @@ agent.run(num_episodes=None)        # None = it won't stop until you stop it
 
 log_q_values = rl.LogQValues()
 log_reward = rl.LogReward()
-log_loss = rl.LogLoss()
+log_loss = rl.LogLoss(env_name)
 log_q_values.read()
 log_reward.read()
 # log_loss.read()   # DON'T USE THIS: still not working
