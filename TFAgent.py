@@ -7,7 +7,8 @@ import math
 import reinforcement_learning as rl
 
 
-env_name = 'Breakout-v0'
+env_name = 'Pong-v0'
+# env_name = 'Breakout-v0'
 # env_name = 'SpaceInvaders-v0'
 
 
@@ -26,14 +27,22 @@ replay_memory = agent.replay_memory
 #                   a random action from the action set with 10% (1%) probability, instead of the max Q-value action.
 #                   You should find it in the agent definition.
 
-agent.run(num_episodes=None)        # None = non si ferma finché non viene fermato
+agent.run(num_episodes=None)        # None = it won't stop until you stop it
 
 log_q_values = rl.LogQValues()
 log_reward = rl.LogReward()
+log_loss = rl.LogLoss()
 log_q_values.read()
 log_reward.read()
+# log_loss.read()   # DON'T USE THIS: still not working
 
-"""plt.plot(log_reward.count_states, log_reward.episode, label='Episode Reward')
+"""plt.plot(log_loss.count_episodes, log_loss.epLoss, label="Episode Loss")
+plt.plot(log_reward.count_states, log_reward.mean, label='Mean of episodes')
+plt.xlabel('Episodes count')
+plt.legend()
+plt.show()
+
+plt.plot(log_reward.count_states, log_reward.episode, label='Episode Reward')
 plt.plot(log_reward.count_states, log_reward.mean, label='Mean of 30 episodes')
 plt.xlabel('State-Count for Game Environment')
 plt.legend()

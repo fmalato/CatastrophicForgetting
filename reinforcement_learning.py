@@ -267,7 +267,7 @@ class Log:
             self.count_episodes, self.count_states, *data = zip(*reader)
 
         # Convert the remaining log-data to a NumPy float-array.
-        self.data = np.array(data, dtype='float')
+        self.data = np.array(data, dtype='float')       # TODO: fix this
 
 
 class LogReward(Log):
@@ -362,6 +362,38 @@ class LogQValues(Log):
         self.max = self.data[2]
         self.std = self.data[3]
 
+# TODO: implement this as you get the loss and mean loss values
+
+class LogLoss(Log):
+    
+    def __init__(self):
+        self.numEpisode = None
+        self.epLoss = None
+        self.epMeanLoss = None
+        
+        Log.__init__(self, file_path='./log_loss/log_loss.txt')
+
+        # I agree: that's horrible. I've put it there because of Log.__init__, which converted it to a NoneType
+        # causing an error.
+        self.count_episodes = 1
+        
+    def write(self, episode_loss, episode_mean_loss):
+        
+        msg = "{ep}\t{mean}".format(ep=episode_loss, mean=episode_mean_loss)    # TODO: how to show only 3 decimals?
+
+        self._write(count_episodes=self.count_episodes,
+                    count_states="Not required",
+                    msg=msg)
+        self.count_episodes += 1
+        
+    def read(self):
+
+        # Read the log-file using the super-class.
+        self._read()
+
+        # Get the logged statistics for the Q-values.
+        self.epLoss = self.data[0]
+        self.epMeanLoss = self.data[1]
 
 ########################################################################
 
@@ -1042,7 +1074,7 @@ class NeuralNetwork:
     better at estimating the Q-values.
     """
 
-    def __init__(self, num_actions, replay_memory):
+    def __init__(self, num_actions, replay_memory, is_training=False):
         """
         :param num_actions:
             Number of discrete actions for the game-environment.
@@ -1090,6 +1122,13 @@ class NeuralNetwork:
         # TensorFlow operation for increasing count_episodes.
         self.count_episodes_increase = tf.assign(self.count_episodes,
                                                  self.count_episodes + 1)
+
+        self.loss_log = LogLoss()
+
+        # Need those values for the log_loss file
+        self.loss_val = None
+        self.loss_mean = None
+        self.training = is_training
 
         # The Neural Network will be constructed in the following.
         # Note that the architecture of this Neural Network is very
@@ -1158,6 +1197,7 @@ class NeuralNetwork:
         # TODO: net = tf.layers.flatten(net)
         net = tf.contrib.layers.flatten(net)
 
+        # COmmented layers due to the article restrictions
         # First fully-connected (aka. dense) layer.
         net = tf.layers.dense(inputs=net, name='layer_fc1', units=1024,
                               kernel_initializer=init, activation=activation)
@@ -1334,26 +1374,31 @@ class NeuralNetwork:
                          self.learning_rate: learning_rate}
 
             # Perform one optimization step and get the loss-value.
-            loss_val, _ = self.session.run([self.loss, self.optimizer],
+            self.loss_val, _ = self.session.run([self.loss, self.optimizer],
                                            feed_dict=feed_dict)
 
             # Shift the loss-history and assign the new value.
             # This causes the loss-history to only hold the most recent values.
             loss_history = np.roll(loss_history, 1)
-            loss_history[0] = loss_val
+            loss_history[0] = self.loss_val
 
             # Calculate the average loss for the previous batches.
-            loss_mean = np.mean(loss_history)
+            self.loss_mean = np.mean(loss_history)
+
+            # TODO: Need to use loss_log here
+            if self.training:
+                self.loss_log.write(episode_loss=self.loss_val,
+                                    episode_mean_loss=self.loss_mean)
 
             # Print status.
             pct_epoch = i / iterations_per_epoch
-            msg = "\tIteration: {0} ({1:.2f} epoch), Batch loss: {2:.4f}, Mean loss: {3:.4f}"
-            msg = msg.format(i, pct_epoch, loss_val, loss_mean)
+            msg = "\tIteration: {0} ({1:.2f} epoch), Batch loss: {2:.4f}, Mean loss: {3:.4f}" # TODO: need to get this values
+            msg = msg.format(i, pct_epoch, self.loss_val, self.loss_mean)
             print_progress(msg)
 
             # Stop the optimization if we have performed the required number
             # of iterations and the loss-value is sufficiently low.
-            if i > min_iterations and loss_mean < loss_limit:
+            if i > min_iterations and self.loss_mean < loss_limit:
                 break
 
         # Print newline.
@@ -1488,9 +1533,11 @@ class Agent:
             # Used for logging Q-values and rewards during training.
             self.log_q_values = LogQValues()
             self.log_reward = LogReward()
+            self.log_loss = LogLoss()
         else:
             self.log_q_values = None
             self.log_reward = None
+
 
         # List of string-names for the actions in the game-environment.
         self.action_names = self.env.unwrapped.get_action_meanings()
@@ -1554,14 +1601,15 @@ class Agent:
             # Each pixel is 1 byte, so this replay-memory needs more than
             # 3 GB RAM (105 x 80 x 2 x 200000 bytes).
 
-            self.replay_memory = ReplayMemory(size=100000,
+            self.replay_memory = ReplayMemory(size=300000,  # TODO: change it to 100000 when using notebook, 300000 for desktop
                                               num_actions=self.num_actions)
         else:
             self.replay_memory = None
 
         # Create the Neural Network used for estimating Q-values.
         self.model = NeuralNetwork(num_actions=self.num_actions,
-                                   replay_memory=self.replay_memory)
+                                   replay_memory=self.replay_memory,
+                                   is_training=self.training)
 
         # Log of the rewards obtained in each episode during calls to run()
         self.episode_rewards = []
